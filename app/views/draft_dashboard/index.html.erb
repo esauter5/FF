@@ -1,0 +1,70 @@
+<%= stylesheet_link_tag "http://cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css" %>
+<%= javascript_include_tag "http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js" %>
+
+<div style="width:1300px;" id="table-wrapper">
+  <input id="show-unavailable" type="checkbox" name="available">Hide Unavailable?
+<table id="players">
+  <thead>
+  <tr>
+    <th>ESPN Ranking</th>
+    <th>Name</th>
+    <th>Team</th>
+    <th>Position</th>
+    <th>Position Ranking</th>
+    <th>Bye Week</th>
+    <th>Avg. Draft Pos.</th>
+    <th>2013 Points</th>
+    <th>PAR10</th>
+    <th>PAR32</th>
+    <th>2014 Projected Points</th>
+    <th>PAR10</th>
+    <th>PAR32</th>
+    <th>Drafted</th>
+  </tr>
+</thead>
+<tbody>
+</tbody
+</table>
+</div>
+
+<script>
+  $(document).ready(function(){
+      $('#players').dataTable({
+        "ajax": "/players",
+        "paging": false,
+        "columnDefs": [
+          {
+            "targets": [13],
+            "data": function ( row, type, val, meta ) {
+              return '<input class="drafted" type="checkbox" name="checked">';
+            }
+          }
+        ]
+      });
+
+    $('#show-unavailable').on('click', function() {
+      if ($(this).prop('checked')) {
+        $('.drafted-true').hide();
+      }
+      else {
+        $('.drafted-true').show();
+      }
+    });
+
+    $('#players').on('click', '.drafted', function() {
+      if ($(this).prop('checked')) {
+        if ($('#show-unavailable').prop('checked')){
+          $(this).closest('tr').addClass('hide-unavailable');
+        }
+        else {
+          $(this).closest('tr').removeClass('hide-unavailable');
+        }
+        $(this).closest('tr').addClass('drafted-true');
+      }
+      else {
+        $(this).closest('tr').removeClass('drafted-true');
+      }
+      console.log("Click"); 
+    });
+  });
+</script>

@@ -1,0 +1,17 @@
+development:
+  adapter: postgresql
+  database: ff_dev
+  user: ericsauter
+  password:
+
+test:
+  adapter: postgresql
+  database: ff_test
+  user: ericsauter
+  password:
+
+production:
+  adapter: postgresql
+  database: ff_pro
+  user: ericsauter
+  password:
