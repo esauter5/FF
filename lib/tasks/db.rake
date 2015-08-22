@@ -48,11 +48,11 @@ namespace :db do
       end
     end
 
-    desc "read 2013 season stats"
-    task :espn_2013_stats => :environment do
-      year = 2014
+    desc "read 2014 season stats"
+    task :espn_2014_stats => :environment do
+      year = 2015
 
-      if year == 2013
+      if year == 2014
         model = SeasonStat
         address =  "http://games.espn.go.com/ffl/leaders?leagueId=526856"
       else
@@ -73,7 +73,7 @@ namespace :db do
 
         trs.each do |tr|
           columns = tr.css('td')
-          columns = columns[1..columns.length-1] if year == 2014
+          columns = columns[1..columns.length-1] if year == 2015
           first_column = columns[0]
           name = first_column.css('a')[0].text.downcase
 
@@ -83,11 +83,11 @@ namespace :db do
             position = first_column.text.split(",")[1].split(" ")[0].split(/[[:space:]]/)[1]
           end
           position_id = map_position[position]
-          att_comp = columns[year == 2013 ? 2 : 3].text.split('/')
+          att_comp = columns[year == 2014 ? 2 : 3].text.split('/')
           player = Player.find_or_create_by_name(name)
           player.position_id = position_id
           player.save
-          if year == 2013
+          if year == 2014
             stats = model.new(pass_completions: att_comp[0].to_i, pass_attempts: att_comp[1].to_i,
                                   pass_yards: columns[6].text.to_i, pass_touchdowns: columns[7].text.to_i,
                                   interceptions: columns[8].text.to_i, rush_attempts: columns[10].text.to_i,
@@ -150,7 +150,7 @@ namespace :db do
     desc "get scoring averages"
     task :par_sum => :environment do
       6.times do |i|
-        query = "Select avg(projected_points) From (Select players.*, projections.projected_points from players inner join projections on players.id = projections.player_id where players.position_id = #{i+1} order by projections.projected_points desc limit 32) As test;"
+        query = "Select avg(total_points) From (Select players.*, season_stats.total_points from players inner join season_stats on players.id = season_stats.player_id where players.position_id = #{i+1} order by season_stats.total_points desc limit 32) As test;"
         a = ActiveRecord::Base.connection.execute(query)
         puts a[0]["avg"]
       end
@@ -161,11 +161,11 @@ namespace :db do
       par = ["par10", "par32"]
       table = ["season_stats", "projections"]
       total = ["total_points", "projected_points"]
-      points = [[[311,281,310,209,157,154],[226,207,246,139,129,108]],[[299,267,292,201,153,153], [232,219,243,138,129,115]]]
+      points = [[[318,284,320,199,148,138],[229,197,247,132,120,101]],[[315,267,295,178,133,127], [260,217,245,139,127,105]]]
       2.times do |j|
         6.times do |i|
-          query = "Update #{table[0]} set #{par[j]}= #{total[0]} - #{points[0][j][i]} where player_id in (Select id from players where position_id = #{i+1})"
-          query = "Update #{table[1]} set #{par[j]}= #{total[1]} - #{points[1][j][i]} where player_id in (Select id from players where position_id = #{i+1})"
+          query = "Update #{table[0]} set #{par[j]} = #{total[0]} - #{points[0][j][i]} where player_id in (Select id from players where position_id = #{i+1})"
+          query = "Update #{table[1]} set #{par[j]} = #{total[1]} - #{points[1][j][i]} where player_id in (Select id from players where position_id = #{i+1})"
           ActiveRecord::Base.connection.execute(query)
         end
       end
