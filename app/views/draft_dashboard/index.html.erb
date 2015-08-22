@@ -1,5 +1,6 @@
 <%= stylesheet_link_tag "http://cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css" %>
 <%= javascript_include_tag "http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js" %>
+<%= javascript_include_tag "https://cdn.firebase.com/js/client/2.2.9/firebase.js" %>
 
 <div style="width:1300px;" id="table-wrapper">
   <input id="show-unavailable" type="checkbox" name="available">Hide Unavailable?
@@ -29,6 +30,8 @@
 
 <script>
   $(document).ready(function(){
+      var playersRef = new Firebase("https://draftkit2015.firebaseio.com/players");
+
       $('#players').dataTable({
         "ajax": "/players",
         "paging": false,
@@ -49,9 +52,26 @@
       else {
         $('.drafted-true').show();
       }
+      });
+
+    playersRef.once('value', function (dataSnapshot) {
+        var player, data;
+        data = dataSnapshot.val();
+
+        for (var key in data) {
+          if (data.hasOwnProperty(key)) {
+            if (data[key].selected) {
+              $("td:contains('" + data[key].name + "')").closest('tr').addClass('drafted-true');
+              $("td:contains('" + data[key].name + "')").closest('tr').find('input').prop('checked', true);
+            }
+          }
+        }
     });
 
     $('#players').on('click', '.drafted', function() {
+      var name = $(this).closest('tr').find('td:nth-child(2)').text();
+      var playerId = name.replace(/\s/g, '');
+      var playerRef =  new Firebase("https://draftkit2015.firebaseio.com/players/" + playerId);
       if ($(this).prop('checked')) {
         if ($('#show-unavailable').prop('checked')){
           $(this).closest('tr').addClass('hide-unavailable');
@@ -59,12 +79,13 @@
         else {
           $(this).closest('tr').removeClass('hide-unavailable');
         }
-        $(this).closest('tr').addClass('drafted-true');
-      }
+          $(this).closest('tr').addClass('drafted-true');
+          playerRef.set({name: name, selected: true });
+        }
       else {
         $(this).closest('tr').removeClass('drafted-true');
+        playerRef.set({name: name, selected: false });
       }
-      console.log("Click"); 
     });
   });
 </script>
